@@ -134,5 +134,52 @@ def check_sorted(lst: list) -> bool:
         return (lst[0] > lst[1]) and check_sorted(lst[1:])
 
 
+def add(a: int, b: int) -> int:
+    """
+    adds 2 numbers without using +
+    >>> add(0, 0)
+    0
+    >>> add(1, 0)
+    1
+    >>> add(0, 1)
+    1
+    >>> add(1, 1)
+    2
+    >>> add(5, 8)
+    13
+    >>> add(100, 420)
+    520
+    """
+    if a == 0:
+        return b
+    else:
+        return sum([1, add((a - 1), b)])
+
+def multiply(a: int, b: int) -> int:
+    """
+    multiplies 2 numbers without using *
+    >>> multiply(0, 0)
+    0
+    >>> multiply(1, 0)
+    0
+    >>> multiply(0, 1)
+    0
+    >>> multiply(1, 5)
+    5
+    >>> multiply(5, 5)
+    25
+    >>> multiply(10, 30)
+    300
+    """
+    if a == 0:
+        return 0
+    else:
+        if a == 1:
+            return b
+        else:
+            return b + multiply((a - 1), b)
+
+
 if __name__ == '__main__':
+    # multiply(5, 5)
     doctest.testmod()

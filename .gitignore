@@ -1,3 +1,4 @@
 .obsidian
 *notes
 *.bak
+.venv
