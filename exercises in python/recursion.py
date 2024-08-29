@@ -155,6 +155,7 @@ def add(a: int, b: int) -> int:
     else:
         return sum([1, add((a - 1), b)])
 
+
 def multiply(a: int, b: int) -> int:
     """
     multiplies 2 numbers without using *
@@ -181,5 +182,4 @@ def multiply(a: int, b: int) -> int:
 
 
 if __name__ == '__main__':
-    # multiply(5, 5)
     doctest.testmod()
