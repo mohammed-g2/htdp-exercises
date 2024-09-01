@@ -4,7 +4,7 @@ import random
 
 pygame.init()
 pygame.font.init()
-FONT = pygame.font.SysFont('Comic Sans MS', 30)
+FONT = pygame.font.SysFont('Roman Times', 22)
 
 BLACK = pygame.Color(0, 0, 0)
 WHITE = pygame.Color(255, 255, 255)
@@ -28,7 +28,8 @@ state = {
     },
     'invaders': [],
     'missiles': [],
-    'clock': None
+    'clock': None,
+    'score': 0
 }
 
 clock = pygame.time.Clock()
@@ -72,9 +73,20 @@ def render_fps(state: dict, surface: pygame.Surface):
     font_surf = FONT.render(f'FPS: {state['clock'].get_fps()}', False, BLACK)
     surface.blit(font_surf, (0, 0))
 
+def render_score(state: dict, surface: pygame.Surface):
+    font_surf = FONT.render(f'Score: {state['score']}', False, BLACK)
+    surface.blit(font_surf, (0, 20))
+
+def render_game_over(state: dict, surface: pygame.Surface):
+    game_over = FONT.render('GAME OVER', False, BLACK)
+    score = FONT.render(f'Score: {state["score"]}', False, BLACK)
+    surface.blit(game_over, (WIDTH/2, HEIGHT/2))
+    surface.blit(score, (WIDTH/2 + 40, HEIGHT/2))
+
 def render(state: dict, surface: pygame.Surface) -> dict:
     surface.fill(WHITE)
     render_fps(state, surface)
+    render_score(state, surface)
     render_tank(state['tank'], surface)
     render_invaders(state['invaders'], surface)
     render_missiles(state['missiles'], surface)
@@ -133,20 +145,40 @@ def move_invaders(invaders: list):
         move_invader(invaders[0])
         move_invaders(invaders[1:])
 
-def check_collision(invaders: list, missiles: list):
-    if invaders == []:
-        return
+
+def hit(invader: dict, invaders: list, missiles: list, state: dict):
+    if missiles == []:
+        return False
     else:
-        if invaders[0].collidepoint(missiles):
-            remove_invaders(invaders)
-            remove_missile(missiles)
-        check_collision(invaders[1:], missiles)
+        """
+        rect1.x < rect2.x + rect2.w &&
+        rect1.x + rect1.w > rect2.x &&
+        rect1.y < rect2.y + rect2.h &&
+        rect1.y + rect1.h > rect2.y
+        """
+        if invader['x'] < missiles[0]['x'] + 20 \
+                and invader['x'] + 40 > missiles[0]['x'] \
+                and invader['y'] < missiles[0]['y'] + 20 \
+                and invader['y'] + 20 > missiles[0]['y']:
+            invaders.remove(invader)
+            missiles.remove(missiles[0])
+            state['score'] += 1
+            return
+        hit(invader, invaders, missiles[1: ], state)
+
+
+def check_collision(invaders: list, missiles: list, state: dict):
+    if invaders == []:
+        return []
+    else:
+        hit(invaders[0], invaders, missiles, state)
+        return check_collision(invaders[1:], missiles, state)
 
 def update(state: dict) -> dict:
     move_missiles(state['missiles'])
     spawn_invaders(state['invaders'])
     move_invaders(state['invaders'])
-    # check_collision(state['invaders'], state['missiles'])
+    check_collision(state['invaders'], state['missiles'], state)
     remove(state)
 
     return state
@@ -171,7 +203,19 @@ def handle_key_press(state: dict, keys: dict):
             state['tank']['x'] += SPEED
 
 
+def invader_reached_ground(invaders: list) -> bool:
+    if invaders == []:
+        return False
+    else:
+        if invaders[0]['y'] > HEIGHT - 10:
+            return True
+        else:
+            return invader_reached_ground(invaders[1:])
+
+
 def end_game(state: dict) -> bool:
+    if invader_reached_ground(state['invaders']):
+        return True
     return False
 
 
@@ -189,6 +233,7 @@ def run(state: dict):
         if end_game(state):
             running = False
         pygame.display.flip()
+        render_game_over(state, SURF)
     print({
         'x': state['tank']['x'], 
         'y': state['tank']['y'],
